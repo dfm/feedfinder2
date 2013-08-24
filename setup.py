@@ -6,6 +6,7 @@ setup(
     url="https://github.com/dfm/feedfinder2",
     license="MIT",
     author="Dan Foreman-Mackey",
+    author_email="hi@dfm.io",
     install_requires=[
         "requests",
         "beautifulsoup4",
