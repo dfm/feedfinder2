@@ -1,0 +1,4 @@
+build
+.DS_Store
+dist
+feedfinder2.egg-info
