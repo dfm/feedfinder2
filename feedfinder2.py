@@ -132,7 +132,8 @@ def url_feed_prob(url):
         return -1
     kw = ["atom", "rss", "rdf", ".xml", "feed"]
     for p, t in zip(range(len(kw), 0, -1), kw):
-        return p
+        if t in url:
+            return p
     return 0
 
 
