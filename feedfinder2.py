@@ -129,10 +129,13 @@ def find_feeds(url, check_all=False, user_agent=None):
 
 def url_feed_prob(url):
     if "comments" in url:
+        return -2
+    if "georss" in url:
         return -1
     kw = ["atom", "rss", "rdf", ".xml", "feed"]
     for p, t in zip(range(len(kw), 0, -1), kw):
-        return p
+        if t in url:
+            return p
     return 0
 
 
