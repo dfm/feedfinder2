@@ -14,7 +14,7 @@ setup(
     author="Dan Foreman-Mackey",
     author_email="hi@dfm.io",
     install_requires=[
-        "requests",
+        "treq",
         "beautifulsoup4",
     ],
     description="Find the feed URLs for a website.",
