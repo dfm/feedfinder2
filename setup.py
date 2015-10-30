@@ -8,7 +8,7 @@ if sys.argv[-1] == "publish":
 
 setup(
     name="feedfinder2",
-    version="0.0.1",
+    version="0.0.2b1",
     url="https://github.com/dfm/feedfinder2",
     license="MIT",
     author="Dan Foreman-Mackey",
