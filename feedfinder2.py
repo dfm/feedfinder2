@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Check for feeds at a url."""
 
 from __future__ import print_function
 
 __all__ = ["find_feeds"]
 
 import logging
-import requests
+from twisted.internet import defer, task
+import treq
 import urlparse
 from bs4 import BeautifulSoup
 
@@ -26,19 +28,25 @@ def coerce_url(url):
 
 class FeedFinder(object):
 
-    def __init__(self, user_agent=None):
+    def __init__(self, user_agent=None, timeout=None):
         if user_agent is None:
             user_agent = "feedfinder2/{0}".format(__version__)
         self.user_agent = user_agent
+        self.timeout = timeout
 
+    @defer.inlineCallbacks
     def get_feed(self, url):
         try:
-            r = requests.get(url, headers={"User-Agent": self.user_agent})
+            r = yield treq.get(
+                url,
+                headers={"User-Agent": self.user_agent},
+                timeout=self.timeout)
+            text = yield r.text()
         except Exception as e:
             logging.warn("Error while getting '{0}'".format(url))
             logging.warn("{0}".format(e))
-            return None
-        return r.text
+            return
+        defer.returnValue(text)
 
     def is_feed_data(self, text):
         data = text.lower()
@@ -46,35 +54,48 @@ class FeedFinder(object):
             return False
         return data.count("<rss")+data.count("<rdf")+data.count("<feed")
 
+    @defer.inlineCallbacks
     def is_feed(self, url):
-        text = self.get_feed(url)
+        """Check if this url a feed."""
+        text = yield self.get_feed(url)
         if text is None:
-            return False
-        return self.is_feed_data(text)
+            defer.returnValue(False)
+        defer.returnValue(self.is_feed_data(text))
+
+    @defer.inlineCallbacks
+    def filter_is_feed(self, urls):
+        """Filter the urls by those that are feeds."""
+        is_feed_check = yield defer.DeferredList(
+            [self.is_feed(u) for u in urls])
+        defer.returnValue([i[0] for i in zip(urls, is_feed_check) if i[1][1]])
 
     def is_feed_url(self, url):
+        """Check if the url is a feed-ish url."""
         return any(map(url.lower().endswith,
                        [".rss", ".rdf", ".xml", ".atom"]))
 
     def is_feedlike_url(self, url):
+        """Check if it's a feedlike url."""
         return any(map(url.lower().count,
                        ["rss", "rdf", "xml", "atom", "feed"]))
 
 
-def find_feeds(url, check_all=False, user_agent=None):
-    finder = FeedFinder(user_agent=user_agent)
+@defer.inlineCallbacks
+def find_feeds(url, check_all=False, user_agent=None, timeout=None):
+    """Find feeds at a url."""
+    finder = FeedFinder(user_agent=user_agent, timeout=timeout)
 
     # Format the URL properly.
     url = coerce_url(url)
 
     # Download the requested URL.
-    text = finder.get_feed(url)
+    text = yield finder.get_feed(url)
     if text is None:
-        return []
+        defer.returnValue([])
 
     # Check if it is already a feed.
     if finder.is_feed_data(text):
-        return [url]
+        defer.returnValue([url])
 
     # Look for <link> tags.
     logging.info("Looking for <link> tags.")
@@ -89,10 +110,10 @@ def find_feeds(url, check_all=False, user_agent=None):
             links.append(urlparse.urljoin(url, link.get("href", "")))
 
     # Check the detected links.
-    urls = filter(finder.is_feed, links)
+    urls = yield finder.filter_is_feed(links)
     logging.info("Found {0} feed <link> tags.".format(len(urls)))
     if len(urls) and not check_all:
-        return sort_urls(urls)
+        defer.returnValue(sort_urls(urls))
 
     # Look for <a> tags.
     logging.info("Looking for <a> tags.")
@@ -108,23 +129,24 @@ def find_feeds(url, check_all=False, user_agent=None):
 
     # Check the local URLs.
     local = [urlparse.urljoin(url, l) for l in local]
-    urls += filter(finder.is_feed, local)
+    urls += yield finder.filter_is_feed(local)
     logging.info("Found {0} local <a> links to feeds.".format(len(urls)))
     if len(urls) and not check_all:
-        return sort_urls(urls)
+        defer.returnValue(sort_urls(urls))
 
     # Check the remote URLs.
     remote = [urlparse.urljoin(url, l) for l in remote]
-    urls += filter(finder.is_feed, remote)
+    urls += yield finder.filter_is_feed(remote)
     logging.info("Found {0} remote <a> links to feeds.".format(len(urls)))
     if len(urls) and not check_all:
-        return sort_urls(urls)
+        defer.returnValue(sort_urls(urls))
 
     # Guessing potential URLs.
     fns = ["atom.xml", "index.atom", "index.rdf", "rss.xml", "index.xml",
            "index.rss"]
-    urls += filter(finder.is_feed, [urlparse.urljoin(url, f) for f in fns])
-    return sort_urls(urls)
+    urls += yield finder.filter_is_feed(
+        [urlparse.urljoin(url, f) for f in fns])
+    defer.returnValue(sort_urls(urls))
 
 
 def url_feed_prob(url):
@@ -143,11 +165,13 @@ def sort_urls(feeds):
     return sorted(list(set(feeds)), key=url_feed_prob, reverse=True)
 
 
-if __name__ == "__main__":
-    print(find_feeds("www.preposterousuniverse.com/blog/"))
-    print(find_feeds("http://xkcd.com"))
-    print(find_feeds("dan.iel.fm/atom.xml"))
-    print(find_feeds("dan.iel.fm", check_all=True))
-    print(find_feeds("kapadia.github.io"))
-    print(find_feeds("blog.jonathansick.ca"))
-    print(find_feeds("asdasd"))
+@task.react
+@defer.inlineCallbacks
+def main(r):
+    yield find_feeds("www.preposterousuniverse.com/blog/").addCallback(print)
+    yield find_feeds("http://xkcd.com").addCallback(print)
+    yield find_feeds("dan.iel.fm/atom.xml").addCallback(print)
+    yield find_feeds("dan.iel.fm", check_all=True).addCallback(print)
+    yield find_feeds("kapadia.github.io").addCallback(print)
+    yield find_feeds("blog.jonathansick.ca").addCallback(print)
+    yield find_feeds("asdasd").addCallback(print)
