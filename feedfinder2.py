@@ -13,7 +13,7 @@ import urlparse
 from bs4 import BeautifulSoup
 
 
-__version__ = "0.0.1"
+__version__ = "0.0.2b1"
 
 
 def coerce_url(url):
