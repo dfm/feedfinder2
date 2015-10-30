@@ -165,13 +165,15 @@ def sort_urls(feeds):
     return sorted(list(set(feeds)), key=url_feed_prob, reverse=True)
 
 
-@task.react
-@defer.inlineCallbacks
-def main(r):
-    yield find_feeds("www.preposterousuniverse.com/blog/").addCallback(print)
-    yield find_feeds("http://xkcd.com").addCallback(print)
-    yield find_feeds("dan.iel.fm/atom.xml").addCallback(print)
-    yield find_feeds("dan.iel.fm", check_all=True).addCallback(print)
-    yield find_feeds("kapadia.github.io").addCallback(print)
-    yield find_feeds("blog.jonathansick.ca").addCallback(print)
-    yield find_feeds("asdasd").addCallback(print)
+if __name__ == "__main__":
+    @task.react
+    @defer.inlineCallbacks
+    def main(r):
+        yield find_feeds(
+            "www.preposterousuniverse.com/blog/").addCallback(print)
+        yield find_feeds("http://xkcd.com").addCallback(print)
+        yield find_feeds("dan.iel.fm/atom.xml").addCallback(print)
+        yield find_feeds("dan.iel.fm", check_all=True).addCallback(print)
+        yield find_feeds("kapadia.github.io").addCallback(print)
+        yield find_feeds("blog.jonathansick.ca").addCallback(print)
+        yield find_feeds("asdasd").addCallback(print)
