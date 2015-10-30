@@ -6,8 +6,7 @@ This is a Twisted library for finding links feeds on a website. It is based on
 written by `Mark
 Pilgrim <http://en.wikipedia.org/wiki/Mark_Pilgrim_(software_developer)>`_ and
 subsequently maintained by `Aaron
-Swartz <http://en.wikipedia.org/wiki/Aaron_Swartz>`_ until his untimely death.
- `Dan Foreman-Mackey <http://dan.iel.fm/>`_ Redid a lot of the lib into a cleaner library.
+Swartz <http://en.wikipedia.org/wiki/Aaron_Swartz>`_ until his untimely death. `Dan Foreman-Mackey <http://dan.iel.fm/>`_ Redid a lot of the lib into a cleaner library.
 
 Usage
 -----
