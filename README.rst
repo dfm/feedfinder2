@@ -16,8 +16,8 @@ as follows:
 
 ::
 
-    from feedfinder2 import find_feeds
-    feeds = find_feeds("xkcd.com")
+    from txfeedfinder2 import find_feeds
+    feeds = yield find_feeds("xkcd.com")
 
 Now, ``feeds`` is the list: ``['http://xkcd.com/atom.xml',
 'http://xkcd.com/rss.xml']``. There is some attempt made to rank feeds from
