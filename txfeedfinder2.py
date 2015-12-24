@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 
-__all__ = ["find_feeds"]
+__all__ = ["find_feeds", "HTTP404"]
 
 import logging
 from twisted.internet import defer, task
@@ -26,13 +26,19 @@ def coerce_url(url):
     return "http://{0}".format(url)
 
 
+class HTTP404(Exception):
+
+    """If we find a 404, raise this."""
+
+
 class FeedFinder(object):
 
-    def __init__(self, user_agent=None, timeout=None):
+    def __init__(self, user_agent=None, timeout=None, should_raise=False):
         if user_agent is None:
             user_agent = "feedfinder2/{0}".format(__version__)
         self.user_agent = user_agent
         self.timeout = timeout
+        self.should_raise = should_raise
 
     @defer.inlineCallbacks
     def get_feed(self, url):
@@ -41,6 +47,8 @@ class FeedFinder(object):
                 url,
                 headers={"User-Agent": self.user_agent},
                 timeout=self.timeout)
+            if r.code == 404 and self.should_raise:
+                raise HTTP404()
             text = yield r.text()
         except Exception as e:
             logging.warn("Error while getting '{0}'".format(url))
@@ -81,9 +89,15 @@ class FeedFinder(object):
 
 
 @defer.inlineCallbacks
-def find_feeds(url, check_all=False, user_agent=None, timeout=None):
+def find_feeds(
+        url, check_all=False, user_agent=None,
+        timeout=None, should_raise=False
+):
     """Find feeds at a url."""
-    finder = FeedFinder(user_agent=user_agent, timeout=timeout)
+    finder = FeedFinder(
+        user_agent=user_agent,
+        timeout=timeout,
+        should_raise=should_raise)
 
     # Format the URL properly.
     url = coerce_url(url)
@@ -169,6 +183,11 @@ if __name__ == "__main__":
     @task.react
     @defer.inlineCallbacks
     def main(r):
+        import sys
+        if len(sys.argv) > 1:
+            r = yield find_feeds(sys.argv[1])
+            print(r)
+            return
         yield find_feeds(
             "www.preposterousuniverse.com/blog/").addCallback(print)
         yield find_feeds("http://xkcd.com").addCallback(print)
