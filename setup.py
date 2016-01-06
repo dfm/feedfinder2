@@ -8,7 +8,7 @@ if sys.argv[-1] == "publish":
 
 setup(
     name="txfeedfinder2",
-    version="0.0.2b1",
+    version="0.0.2b2",
     url="https://github.com/scrunchenterprises/txfeedfinder2",
     license="MIT",
     author="David P. Novakovic",
