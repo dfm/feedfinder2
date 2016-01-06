@@ -7,19 +7,19 @@ if sys.argv[-1] == "publish":
     sys.exit()
 
 setup(
-    name="feedfinder2",
-    version="0.0.1",
-    url="https://github.com/dfm/feedfinder2",
+    name="txfeedfinder2",
+    version="0.0.2b2",
+    url="https://github.com/scrunchenterprises/txfeedfinder2",
     license="MIT",
-    author="Dan Foreman-Mackey",
-    author_email="hi@dfm.io",
+    author="David P. Novakovic",
+    author_email="david@scrunch.com",
     install_requires=[
-        "requests",
+        "treq",
         "beautifulsoup4",
     ],
     description="Find the feed URLs for a website.",
     long_description=open("README.rst").read(),
-    py_modules=["feedfinder2"],
+    py_modules=["txfeedfinder2"],
     classifiers=[
         "Programming Language :: Python",
         "Development Status :: 4 - Beta",
