@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 from six.moves.urllib import parse as urlparse
 
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 
 def coerce_url(url):
