@@ -1,19 +1,22 @@
 import os
 import sys
-from setuptools import setup
 
 if sys.argv[-1] == "publish":
     os.system("python setup.py sdist upload")
     sys.exit()
 
+import feedfinder2
+from setuptools import setup
+
 setup(
     name="feedfinder2",
-    version="0.0.1",
+    version=feedfinder2.__version__,
     url="https://github.com/dfm/feedfinder2",
     license="MIT",
     author="Dan Foreman-Mackey",
-    author_email="hi@dfm.io",
+    author_email="foreman.mackey@gmail.com",
     install_requires=[
+        "six",
         "requests",
         "beautifulsoup4",
     ],
