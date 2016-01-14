@@ -7,8 +7,9 @@ __all__ = ["find_feeds"]
 
 import logging
 import requests
-import urlparse
 from bs4 import BeautifulSoup
+
+from six.moves.urllib import parse as urlparse
 
 
 __version__ = "0.0.1"
@@ -89,7 +90,7 @@ def find_feeds(url, check_all=False, user_agent=None):
             links.append(urlparse.urljoin(url, link.get("href", "")))
 
     # Check the detected links.
-    urls = filter(finder.is_feed, links)
+    urls = list(filter(finder.is_feed, links))
     logging.info("Found {0} feed <link> tags.".format(len(urls)))
     if len(urls) and not check_all:
         return sort_urls(urls)
@@ -108,14 +109,14 @@ def find_feeds(url, check_all=False, user_agent=None):
 
     # Check the local URLs.
     local = [urlparse.urljoin(url, l) for l in local]
-    urls += filter(finder.is_feed, local)
+    urls += list(filter(finder.is_feed, local))
     logging.info("Found {0} local <a> links to feeds.".format(len(urls)))
     if len(urls) and not check_all:
         return sort_urls(urls)
 
     # Check the remote URLs.
     remote = [urlparse.urljoin(url, l) for l in remote]
-    urls += filter(finder.is_feed, remote)
+    urls += list(filter(finder.is_feed, remote))
     logging.info("Found {0} remote <a> links to feeds.".format(len(urls)))
     if len(urls) and not check_all:
         return sort_urls(urls)
@@ -123,7 +124,8 @@ def find_feeds(url, check_all=False, user_agent=None):
     # Guessing potential URLs.
     fns = ["atom.xml", "index.atom", "index.rdf", "rss.xml", "index.xml",
            "index.rss"]
-    urls += filter(finder.is_feed, [urlparse.urljoin(url, f) for f in fns])
+    urls += list(filter(finder.is_feed, [urlparse.urljoin(url, f)
+                                         for f in fns]))
     return sort_urls(urls)
 
 

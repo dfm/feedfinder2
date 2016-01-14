@@ -2,7 +2,7 @@ Feedfinder2
 ===========
 
 This is a Python library for finding links feeds on a website. It is based on
-`feedfinder <http://www.aaronsw.com/2002/feedfinder/>`_ — originally
+`feedfinder <http://www.aaronsw.com/2002/feedfinder/>`_ - originally
 written by `Mark
 Pilgrim <http://en.wikipedia.org/wiki/Mark_Pilgrim_(software_developer)>`_ and
 subsequently maintained by `Aaron
@@ -21,7 +21,7 @@ as follows:
 
 Now, ``feeds`` is the list: ``['http://xkcd.com/atom.xml',
 'http://xkcd.com/rss.xml']``. There is some attempt made to rank feeds from
-best candidate to worst but… well… you never know.
+best candidate to worst but... well... you never know.
 
 License
 -------
