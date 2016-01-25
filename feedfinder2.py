@@ -3,16 +3,20 @@
 
 from __future__ import print_function
 
-__all__ = ["find_feeds"]
-
-import logging
-import requests
-from bs4 import BeautifulSoup
-
-from six.moves.urllib import parse as urlparse
-
-
 __version__ = "0.0.2"
+
+try:
+    __FEEDFINDER2_SETUP__
+except NameError:
+    __FEEDFINDER2_SETUP__ = False
+
+if not __FEEDFINDER2_SETUP__:
+    __all__ = ["find_feeds"]
+
+    import logging
+    import requests
+    from bs4 import BeautifulSoup
+    from six.moves.urllib import parse as urlparse
 
 
 def coerce_url(url):
