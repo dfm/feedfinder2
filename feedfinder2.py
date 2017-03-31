@@ -3,7 +3,7 @@
 
 from __future__ import print_function
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 try:
     __FEEDFINDER2_SETUP__
@@ -31,14 +31,15 @@ def coerce_url(url):
 
 class FeedFinder(object):
 
-    def __init__(self, user_agent=None):
+    def __init__(self, user_agent=None, timeout=None):
         if user_agent is None:
             user_agent = "feedfinder2/{0}".format(__version__)
         self.user_agent = user_agent
+        self.timeout = timeout
 
     def get_feed(self, url):
         try:
-            r = requests.get(url, headers={"User-Agent": self.user_agent})
+            r = requests.get(url, headers={"User-Agent": self.user_agent}, timeout=self.timeout)
         except Exception as e:
             logging.warn("Error while getting '{0}'".format(url))
             logging.warn("{0}".format(e))
@@ -66,8 +67,8 @@ class FeedFinder(object):
                        ["rss", "rdf", "xml", "atom", "feed"]))
 
 
-def find_feeds(url, check_all=False, user_agent=None):
-    finder = FeedFinder(user_agent=user_agent)
+def find_feeds(url, check_all=False, user_agent=None, timeout=None):
+    finder = FeedFinder(user_agent=user_agent, timeout=timeout)
 
     # Format the URL properly.
     url = coerce_url(url)
@@ -150,6 +151,7 @@ def sort_urls(feeds):
 
 
 if __name__ == "__main__":
+    print(find_feeds("www.preposterousuniverse.com/blog/", timeout = 1))
     print(find_feeds("www.preposterousuniverse.com/blog/"))
     print(find_feeds("http://xkcd.com"))
     print(find_feeds("dan.iel.fm/atom.xml"))
@@ -157,3 +159,4 @@ if __name__ == "__main__":
     print(find_feeds("kapadia.github.io"))
     print(find_feeds("blog.jonathansick.ca"))
     print(find_feeds("asdasd"))
+    
