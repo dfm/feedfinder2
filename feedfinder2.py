@@ -15,6 +15,7 @@ if not __FEEDFINDER2_SETUP__:
 
     import logging
     import requests
+    from collections import OrderedDict
     from bs4 import BeautifulSoup
     from six.moves.urllib import parse as urlparse
 
@@ -67,7 +68,7 @@ class FeedFinder(object):
                        ["rss", "rdf", "xml", "atom", "feed"]))
 
 
-def find_feeds(url, check_all=False, user_agent=None, timeout=None):
+def find_feeds(url, check_all=False, user_agent=None, timeout=None, include_content=False):
     finder = FeedFinder(user_agent=user_agent, timeout=timeout)
 
     # Format the URL properly.
@@ -80,6 +81,8 @@ def find_feeds(url, check_all=False, user_agent=None, timeout=None):
 
     # Check if it is already a feed.
     if finder.is_feed_data(text):
+        if include_content:
+            return {url:text}
         return [url]
 
     # Look for <link> tags.
@@ -95,7 +98,17 @@ def find_feeds(url, check_all=False, user_agent=None, timeout=None):
             links.append(urlparse.urljoin(url, link.get("href", "")))
 
     # Check the detected links.
-    urls = list(filter(finder.is_feed, links))
+    if include_content:
+        urls = {}
+    else:
+        urls = []
+    for link in links:
+        text = finder.get_feed(link)
+        if not text:
+            continue
+        if finder.is_feed_data(text):
+            append(urls, link, text)
+
     logging.info("Found {0} feed <link> tags.".format(len(urls)))
     if len(urls) and not check_all:
         return sort_urls(urls)
@@ -114,14 +127,26 @@ def find_feeds(url, check_all=False, user_agent=None, timeout=None):
 
     # Check the local URLs.
     local = [urlparse.urljoin(url, l) for l in local]
-    urls += list(filter(finder.is_feed, local))
+    for link in local:
+        text = finder.get_feed(link)
+        if not text:
+            continue
+        if finder.is_feed_data(text):
+            append(urls, link, text)
+
     logging.info("Found {0} local <a> links to feeds.".format(len(urls)))
     if len(urls) and not check_all:
         return sort_urls(urls)
 
     # Check the remote URLs.
     remote = [urlparse.urljoin(url, l) for l in remote]
-    urls += list(filter(finder.is_feed, remote))
+    for link in remote:
+        text = finder.get_feed(link)
+        if not text:
+            continue
+        if finder.is_feed_data(text):
+            append(urls, link, text)
+
     logging.info("Found {0} remote <a> links to feeds.".format(len(urls)))
     if len(urls) and not check_all:
         return sort_urls(urls)
@@ -129,10 +154,21 @@ def find_feeds(url, check_all=False, user_agent=None, timeout=None):
     # Guessing potential URLs.
     fns = ["atom.xml", "index.atom", "index.rdf", "rss.xml", "index.xml",
            "index.rss"]
-    urls += list(filter(finder.is_feed, [urlparse.urljoin(url, f)
-                                         for f in fns]))
+    urls=[urlparse.urljoin(url, f) for f in fns]
+    for url in urls:
+        text=finder.get_feed(url)
+        if not text:
+            continue
+        if finder.is_feed_data(text):
+            append(urls, url, text)
+
     return sort_urls(urls)
 
+def append(var, link, text):
+    if type(var)==OrderedDict or type(var)==dict:
+        var[link]=text
+    else:
+        var.append(link)
 
 def url_feed_prob(url):
     if "comments" in url:
@@ -147,8 +183,15 @@ def url_feed_prob(url):
 
 
 def sort_urls(feeds):
-    return sorted(list(set(feeds)), key=url_feed_prob, reverse=True)
-
+    if type(feeds) == OrderedDict or type(feeds) == dict:
+        result={}
+        for feed, content in feeds.items():
+            if not feed in result:
+                result[feed]=content
+        result=OrderedDict(sorted(result.items(), reverse=True, key=lambda item:url_feed_prob(item[0])))
+        return result
+    elif  type(feeds)==list:
+        return sorted(list(set(feeds)), key=url_feed_prob, reverse=True)
 
 if __name__ == "__main__":
     print(find_feeds("www.preposterousuniverse.com/blog/", timeout = 1))
