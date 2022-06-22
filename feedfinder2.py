@@ -41,8 +41,8 @@ class FeedFinder(object):
         try:
             r = requests.get(url, headers={"User-Agent": self.user_agent}, timeout=self.timeout)
         except Exception as e:
-            logging.warn("Error while getting '{0}'".format(url))
-            logging.warn("{0}".format(e))
+            logging.warning("Error while getting '{0}'".format(url))
+            logging.warning("{0}".format(e))
             return None
         return r.text
 
